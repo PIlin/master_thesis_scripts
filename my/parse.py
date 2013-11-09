@@ -28,7 +28,17 @@ phy_sendOver = re.compile('.*p802_15_4phy.cc::sendOverHandler\]\[(?P<time>.*)\]\
 mac_drop_test = r"[D][APS][wpan/p802_15_4mac.cc::recv::1204][0.664063](node 2) dropping pkt: type = M_CM7_Bcn-Req, src = 1, dst = -1, uid = 0, mac_uid = 3, size = 8"
 mac_drop = re.compile('\[D\]\[(?P<reason>.*?)\].*p802_15_4mac.cc::recv:{0,2}(?P<line>.*)\]\[(?P<time>.*)\]\(node (?P<node>.*)\) dropping pkt: (?P<info>.*)')
 
-rs = (phy_recv, phy_recvOver, phy_recvOverDrop, phy_send, phy_sendOver, mac_drop)
+rs_log = (phy_recv, phy_recvOver, phy_recvOverDrop, phy_send, phy_sendOver, mac_drop)
+
+
+"s 5.000427946 _0_ RTR  --- 0 undefined 120 [0 0 0 0] ------- [0:250 -1:250 32 0] "
+tr_std_part = lambda src: '(?P<time>.*) _(?P<node>.*)_ %s .*?--- (?P<info>.*?) \[' % (src,)
+tr_re_r = re.compile('r ' + tr_std_part('RTR'))
+tr_re_s = re.compile('s ' + tr_std_part('RTR'))
+tr_re_D = re.compile('D ' + tr_std_part('IFQ'))
+
+rs_tr = (tr_re_r, tr_re_s, tr_re_D)
+
 
 info_src = re.compile(r'src = ([-\d]*)')
 info_dst = re.compile(r'dst = ([-\d]*)')
@@ -55,7 +65,7 @@ def try_int(val):
 	except ValueError:
 		return val
 
-def parse_info(info):
+def parse_log_info(info):
 	ip = {}
 	for k,v in info_re.items():
 		m = v.search(info)
@@ -65,7 +75,7 @@ def parse_info(info):
 	return ip
 
 
-def parse_mo(r, m):
+def parse_log_mo(r, m):
 	md = m.groupdict()
 	node = int(md['node'])
 
@@ -74,7 +84,7 @@ def parse_mo(r, m):
 
 	time = float(md['time'])
 	infos = md['info']
-	infod = parse_info(infos)
+	infod = parse_log_info(infos)
 
 	if r == phy_send:
 		tx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'send'))
@@ -94,22 +104,74 @@ def parse_mo(r, m):
 
 
 
-def parse_line(l):
+def parse_log_line(l):
 	# print (l)
-	for r in rs:
+	for r in rs_log:
 		m = r.search(l)
 		# print (m)
 		if m:
-			parse_mo(r, m)
+			parse_log_mo(r, m)
+			return
+
+def parse_tr_info(info):
+	ip = {}
+	# print (info)
+	il = info.split()
+	
+	ip['number'] 	= try_int(il[0])
+	ip['type']		= 		  il[1]
+	ip['size'] 		= try_int(il[2])
+
+	# print(ip)
+	return ip
+
+def parse_tr_mo(r, m):
+	md = m.groupdict()
+	node = int(md['node'])
+
+	if node >= nodes:
+		return
+
+	time = float(md['time'])
+	infos = md['info']
+	infod = parse_tr_info(infos)
+
+	if r == tr_re_r:
+		if node == 0:
+			return
+		rx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'r'))
+		rx[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 'r'))
+		# pprint(rx)
+	elif r == tr_re_s:
+		tx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 's'))
+		tx[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 's'))
+		# pprint(tx)
+	elif r == tr_re_D:
+		drops[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'D'))
+		drops[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 'D'))
+		# pprint(drops)
+
+
+def parse_tr_line(l):
+	for r in rs_tr:
+		# print (l)
+		m = r.search(l)
+		# print (m)
+		if m:
+			parse_tr_mo(r, m)
 			return
 
 
-fname = 'log.txt'
+# fname = 'log.txt'
+fname = 't4.tr'
 with open(fname) as f:
 	for line in f:
-		parse_line(line)
+		# parse_log_line(line)
+		parse_tr_line(line)
 
-# parse_line(phy_recvOverDrop_test)
+print (tx)
+
+# parse_log_line(phy_recvOverDrop_test)
 # print(rx)
 # sys.exit()
 
