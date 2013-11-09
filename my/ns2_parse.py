@@ -1,14 +1,7 @@
 
-import sys
 import re
 
-from pprint import pprint
-
-import matplotlib.pyplot as plt 
-
-from itertools import izip
 from collections import namedtuple
-
 
 phy_recv_test = r"[wpan/p802_15_4phy.cc::recv][0.000320](node 0) incoming pkt: type = M_CM7_Bcn-Req, src = 0, dst = -1, uid = 0, mac_uid = 0, size = 8"
 phy_recv = re.compile('.*p802_15_4phy.cc::recv\]\[(?P<time>.*)\]\(node (?P<node>.*)\) incoming pkt: (?P<info>.*)')
@@ -50,14 +43,25 @@ info_re = {}
 for f in info_fields:
 	info_re[f] = re.compile('%s = ([-\d]*)' % (f,))
 
-
-
-nodes = 3
 Event = namedtuple('Event', ['e','t','i', 'ip','type'])
-tx = {i:[] for i in range(0, nodes)}
-rx = {i:[] for i in range(0, nodes)}
-drops = {i:[] for i in range(0, nodes)}
-# print(tx)
+
+EventTypes = namedtuple('EventTypes', ['tx', 'rx', 'drops'])
+def addNode(self, node):
+	self.tx[node] = []
+	self.rx[node] = []
+	self.drops[node] = []
+EventTypes.addNode = addNode
+def lastNode(self):
+	return max(self.tx.iterkeys())
+EventTypes.lastNode = lastNode
+
+	
+# tx = {i:[] for i in range(0, nodes)}
+# rx = {i:[] for i in range(0, nodes)}
+# drops = {i:[] for i in range(0, nodes)}
+# tx = {}
+# rx = {}
+# drops = {}
 
 def try_int(val):
 	try:
@@ -75,42 +79,42 @@ def parse_log_info(info):
 	return ip
 
 
-def parse_log_mo(r, m):
+def parse_log_mo(r, m, et):
 	md = m.groupdict()
 	node = int(md['node'])
 
-	if node >= nodes:
-		return
+	if not node in et.tx:
+		et.addNode(node)
 
 	time = float(md['time'])
 	infos = md['info']
 	infod = parse_log_info(infos)
 
 	if r == phy_send:
-		tx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'send'))
+		et.tx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'send'))
 	elif r == phy_sendOver:
-		tx[node].append(Event(t = time, e = 0, i = infos, ip = infod, type = 'sendOver'))
+		et.tx[node].append(Event(t = time, e = 0, i = infos, ip = infod, type = 'sendOver'))
 	if r == phy_recv:
-		rx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'recv'))
+		et.rx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'recv'))
 	elif r == phy_recvOver:
-		rx[node].append(Event(t = time, e = 0, i = infos, ip = infod, type = 'recvOver'))
+		et.rx[node].append(Event(t = time, e = 0, i = infos, ip = infod, type = 'recvOver'))
 	elif r == phy_recvOverDrop:
-		rx[node].append(Event(t = time, e = 0, i = infos, ip = infod, type = 'phy_recvOverDrop'))
-		drops[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'drop'))
-		drops[node].append(Event(t = time + 0.0001, e = 0, i = infos, ip = infod, type = 'drop'))
+		et.rx[node].append(Event(t = time, e = 0, i = infos, ip = infod, type = 'phy_recvOverDrop'))
+		et.drops[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'drop'))
+		et.drops[node].append(Event(t = time + 0.0001, e = 0, i = infos, ip = infod, type = 'drop'))
 	elif r == mac_drop:
-		drops[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'drop'))
-		drops[node].append(Event(t = time + 0.0001, e = 0, i = infos, ip = infod, type = 'drop'))
+		et.drops[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'drop'))
+		et.drops[node].append(Event(t = time + 0.0001, e = 0, i = infos, ip = infod, type = 'drop'))
 
 
 
-def parse_log_line(l):
+def parse_log_line(l, et):
 	# print (l)
 	for r in rs_log:
 		m = r.search(l)
 		# print (m)
 		if m:
-			parse_log_mo(r, m)
+			parse_log_mo(r, m, et)
 			return
 
 def parse_tr_info(info):
@@ -125,12 +129,12 @@ def parse_tr_info(info):
 	# print(ip)
 	return ip
 
-def parse_tr_mo(r, m):
+def parse_tr_mo(r, m, et):
 	md = m.groupdict()
 	node = int(md['node'])
 
-	if node >= nodes:
-		return
+	if not node in et.tx:
+		et.addNode(node)
 
 	time = float(md['time'])
 	infos = md['info']
@@ -139,125 +143,49 @@ def parse_tr_mo(r, m):
 	if r == tr_re_r:
 		if node == 0:
 			return
-		rx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'r'))
-		rx[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 'r'))
+		et.rx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'r'))
+		et.rx[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 'r'))
 		# pprint(rx)
 	elif r == tr_re_s:
-		tx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 's'))
-		tx[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 's'))
+		et.tx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 's'))
+		et.tx[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 's'))
 		# pprint(tx)
 	elif r == tr_re_D:
-		drops[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'D'))
-		drops[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 'D'))
+		et.drops[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'D'))
+		et.drops[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 'D'))
 		# pprint(drops)
 
 
-def parse_tr_line(l):
+def parse_tr_line(l, et):
 	for r in rs_tr:
 		# print (l)
 		m = r.search(l)
 		# print (m)
 		if m:
-			parse_tr_mo(r, m)
+			parse_tr_mo(r, m, et)
 			return
-
-
-# fname = 'log.txt'
-fname = 't4.tr'
-with open(fname) as f:
-	for line in f:
-		# parse_log_line(line)
-		parse_tr_line(line)
-
-print (tx)
 
 # parse_log_line(phy_recvOverDrop_test)
 # print(rx)
-# sys.exit()
-
-def pairwise(iterable):
-    "s -> (s0,s1), (s2,s3), (s4, s5), ..."
-    a = iter(iterable)
-    return izip(a, a)
-
-lines = {}
-
-def draw(src, ax, color):
-	bt = []
-	for a,b in pairwise(src):
-		# assert(a.e == 1)
-		# assert(b.e == 0)
-		# bt.append((a.t, b.t-a.t))
-		l = ax.fill_between([a.t, b.t], [0.2, 0.8], color = color, picker=True)
-		lines[l] = a
-	# print(bt)
 
 
-	# ax.broken_barh(bt, (0,0.99), facecolors=color, picker=True)
+def parse_log_file(fname):
+	et = EventTypes({}, {}, {})
 
-	# yg = y_gen(0.1, 0.8, 0.2)
-	# for e in src:
-	# 	if e.e == 1:
-	# 		print (e)
-	# 		y = yg.next()
-	# 		ax.annotate(e.i, xy=(e.t, y), xytext=(e.t, y+0.1),
-	# 			arrowprops=dict(facecolor=color, shrink=0.05),)
+	with open(fname) as f:
+		for line in f:
+			parse_log_line(line, et)
 
-def draw_annot(srcs, ax, colors):
-	arr = []
-	X = namedtuple('X', ['e', 'node', 'c', 'type'])
-	i = 0
-	for sc in izip(srcs, colors):
-		pprint(sc)
-		print(type(sc[0]))
-		for k,v in sc[0].items():
-			for e in v:
-				arr.append(X(e, k, sc[1], i))
-		i = i + 1
+	return et
 
-	# pprint(arr)
-	arr.sort(key = lambda x: x.e.t)
-	pprint (arr)
+def parse_tr_file(fname):
+	et = EventTypes({}, {}, {})
 
-	def y_gen(a,b,c):
-		cur = a
-		while True:
-			yield cur
-			cur = cur + c
-			if cur > b: cur = cur - (b - a)
+	with open(fname) as f:
+		for line in f:
+			parse_tr_line(line, et)
 
-	yg = [y_gen(0.1, 0.8, 0.2) for i in range(0, len(ax))]
-
-	for x in arr:
-		if x.e.e == 1:
-			y = yg[x.node].next()
-			print (x)
-			ax[x.node].annotate('%.5f,%s' % (x.e.t, x.e.i), xy=(x.e.t, y), xytext=(x.e.t, y+0.1),
-					arrowprops=dict(facecolor=x.c, shrink=0.05), color = x.c)
+	return et
 
 
-f,ax = plt.subplots(nodes, sharex = True)
-for i in range(0,nodes):
-	ax[i].set_ylim(0, 1)
-	draw(tx[i], ax[i], 'black')
-	draw(rx[i], ax[i], 'blue')
-	draw(drops[i], ax[i], 'red')
-	ax[i].grid()
-
-# draw_annot([tx, rx, drops], ax, ['black', 'blue', 'red'])
-
-pprint(drops)
-
-
-def onpick(event):
-	# print(event.artist)
-	if event.artist in lines:
-		a = lines[event.artist]
-		print(a)
-	pass
-
-	
-f.canvas.mpl_connect('pick_event', onpick)
-
-plt.show()
-
+ 
