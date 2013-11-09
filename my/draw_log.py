@@ -17,7 +17,7 @@ et = parse_log_file('log.txt')
 tx = et.tx
 rx = et.rx
 drops = et.drops
-nodes = et.lastNode()
+nodes = et.lastNode() + 1
 # print (tx)
 
 
@@ -30,7 +30,9 @@ def draw(src, ax, color):
 		# assert(a.e == 1)
 		# assert(b.e == 0)
 		# bt.append((a.t, b.t-a.t))
-		l = ax.fill_between([a.t, b.t], [0.2, 0.8], color = color, picker=True)
+		y = 0.5
+		if a.ip['type'] == 'M_BEACON': y = y + 0.3
+		l = ax.fill_between([a.t, b.t], [y, y], color = color, picker=True)
 		lines[l] = a
 	# print(bt)
 
