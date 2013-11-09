@@ -6,13 +6,21 @@ set val(ifq)           Queue/DropTail/PriQueue      ;# interface queue type
 set val(ll)            LL                           ;# link layer type
 set val(ant)           Antenna/OmniAntenna          ;# antenna model
 set val(ifqlen)        2	         	    ;# max packet in ifq
-set val(nn)            3			    ;# number of mobilenodes
+set val(nn)            10			    ;# number of mobilenodes
 set val(rp)            NOAH			    ;# protocol tye
 set val(x)             10			    ;# X dimension of topography
 set val(y)             10			    ;# Y dimension of topography
-set val(stop)          7			    ;# simulation period 
 # set val(energymodel)   EnergyModel		    ;# Energy Model
 set val(initialenergy) 100			    ;# value
+
+
+set val(operationStart) 1
+set val(stop)           7.1                ;# simulation period 
+
+set val(bmsg-interval) 0.016666667      ;# 1/60
+set val(bmsg-size)     120              ;# 1..120
+set val(bmsg-start)    $val(operationStart)
+set val(bmsg-stop)    [expr $val(stop) - 0.1]
 
 set namtracename    t4.nam
 
@@ -142,14 +150,14 @@ proc get_rand_time {first last number} {
 $ns at 0.0 "$mnode_(0) NodeLabel PAN Coor"
 $ns at 0.0 "$mnode_(0) sscs startPANCoord 0 3 3"
 
-# set times [get_rand_time 0.5 5 $val(nn)]
-# puts $times
-for {set i 1} {$i < $val(nn)} { incr i } {
-    # set t [lindex $times $i]
-    set t [expr ($i - 1) * 1 + 1]
-    puts "t = $t"
-    $ns at $t "$mnode_($i) sscs startDevice 0 0 0"
-}
+# # set times [get_rand_time 0.5 5 $val(nn)]
+# # puts $times
+# for {set i 1} {$i < $val(nn)} { incr i } {
+#     # set t [lindex $times $i]
+#     set t [expr ($i - 1) * 1 + 1]
+#     puts "t = $t"
+#     $ns at $t "$mnode_($i) sscs startDevice 0 0 0"
+# }
 
 # #Setup a UDP connection
 # set udp [new Agent/UDP]
@@ -161,38 +169,19 @@ for {set i 0} {$i < $val(nn)} { incr i } {
     $mnode_($i) attach $agent($i) 250
     $agent($i) set fid_ $i
     set game($i) [new Application/BroadcastbaseApp] 
-    $game($i) set bsize_ 120
-    $game($i) set bmsg-interval_ 0.001
+    $game($i) set bsize_ $val(bmsg-size)
+    $game($i) set bmsg-interval_ $val(bmsg-interval)
     $game($i) set propagate_ 0
     $game($i) attach-agent $agent($i)     
 }
 
-# $udp set fid_ 2
 
-# #Setup a CBR over UDP connection
-# set cbr [new Application/Traffic/CBR]
-# $cbr attach-agent $udp
-# $cbr set type_ CBR
-# $cbr set packet_size_ 120
-# # $cbr set rate_ 0.1Mb
-# $cbr set interval_ 10
-# #$cbr set random_ false
+$ns at $val(bmsg-start) "$game(0) start "
+$ns at $val(bmsg-stop)  "$game(0) stop "
 
-# set pktType cbr
-
-
-# Mac/802_15_4 wpanNam FlowClr -p $pktType -s 0 -d 1 -c blue
-# Mac/802_15_4 wpanNam FlowClr -p $pktType -s 1 -d 0 -c green4
-
-# $ns at 2 "$cbr start"
-# $ns at [expr $val(stop) - 0.1] "$cbr stop"
-
-$ns at 5 "$game(0) start "
-$ns at [expr $val(stop) - 0.1] "$game(0) stop "
-
-for {set i 0} {$i <  $val(nn) } {incr i} {
-    $ns at [expr $val(stop) - 0.1]   "$game($i) print-trace" 
-}
+# for {set i 0} {$i <  $val(nn) } {incr i} {
+#     $ns at $val(bmsg-stop)    "$game($i) print-trace" 
+# }
 
 
 # Telling nodes when the simulation ends
@@ -203,7 +192,6 @@ for {set i 0} {$i < $val(nn) } { incr i } {
 
 # ending nam and the simulation
 $ns at $val(stop) "$ns nam-end-wireless $val(stop)"
-# $ns at $val(stop) "stop"
 $ns at $val(stop) "stop"
 $ns at [expr $val(stop) + 0.01] "puts \"end simulation\"; $ns halt"
 proc stop {} {
