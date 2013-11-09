@@ -26,8 +26,8 @@ rs_log = (phy_recv, phy_recvOver, phy_recvOverDrop, phy_send, phy_sendOver, mac_
 
 "s 5.000427946 _0_ RTR  --- 0 undefined 120 [0 0 0 0] ------- [0:250 -1:250 32 0] "
 tr_std_part = lambda src: '(?P<time>.*) _(?P<node>.*)_ %s .*?--- (?P<info>.*?) \[' % (src,)
-tr_re_r = re.compile('r ' + tr_std_part('RTR'))
-tr_re_s = re.compile('s ' + tr_std_part('RTR'))
+tr_re_r = re.compile('r ' + tr_std_part('AGT'))
+tr_re_s = re.compile('s ' + tr_std_part('AGT'))
 tr_re_D = re.compile('D ' + tr_std_part('IFQ'))
 
 rs_tr = (tr_re_r, tr_re_s, tr_re_D)
