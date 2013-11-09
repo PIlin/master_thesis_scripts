@@ -1,8 +1,11 @@
 
+from pprint import pprint
+
 import re
 
 from collections import namedtuple
 
+# phy_recv_test = r"[wpan/p802_15_4phy.cc::recv][0.000320](node 0) incoming pkt: type = M_CM7_Bcn-Req, src = 0, dst = -1, uid = 0, mac_uid = 0, size = 8"
 phy_recv_test = r"[wpan/p802_15_4phy.cc::recv][0.000320](node 0) incoming pkt: type = M_CM7_Bcn-Req, src = 0, dst = -1, uid = 0, mac_uid = 0, size = 8"
 phy_recv = re.compile('.*p802_15_4phy.cc::recv\]\[(?P<time>.*)\]\(node (?P<node>.*)\) incoming pkt: (?P<info>.*)')
 
@@ -42,6 +45,7 @@ info_fields = ['src', 'dst', 'type', 'size']
 info_re = {}
 for f in info_fields:
 	info_re[f] = re.compile('%s = ([-\d]*)' % (f,))
+info_re['type'] = re.compile('type = ([^,\s]+)(,\s*\d+)*')
 
 Event = namedtuple('Event', ['e','t','i', 'ip','type'])
 
@@ -165,10 +169,6 @@ def parse_tr_line(l, et):
 			parse_tr_mo(r, m, et)
 			return
 
-# parse_log_line(phy_recvOverDrop_test)
-# print(rx)
-
-
 def parse_log_file(fname):
 	et = EventTypes({}, {}, {})
 
@@ -187,5 +187,9 @@ def parse_tr_file(fname):
 
 	return et
 
+if __name__ == '__main__':
+	et = EventTypes({}, {}, {})
+	parse_log_line(phy_recv_test, et)
+	pprint(et)
 
  
