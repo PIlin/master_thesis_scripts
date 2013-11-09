@@ -24,6 +24,11 @@ set namtrace      	[open $namtracename w]
 $ns trace-all $tracefd
 $ns namtrace-all-wireless $namtrace $val(x) $val(y)
 
+
+Mac/802_15_4 wpanCmd verbose on
+Mac/802_15_4 wpanNam namStatus on       ;# default = off (should be turned on before other 'wpanNam' commands can work)
+# Mac/802_15_4 wpanNam ColFlashClr gold      ;# default = gold
+
 set dist(5m)  7.69113e-06
 set dist(9m)  2.37381e-06
 set dist(10m) 1.92278e-06
@@ -100,6 +105,7 @@ for {set i 1} {$i < $val(nn) } {incr i} {
 }
 
 
+
 for {set i 1} {$i < $val(nn) } { incr i } {
     $mnode_($i) set X_ [ expr {$val(x) * rand()} ]
     $mnode_($i) set Y_ [ expr {$val(y) * rand()} ]
@@ -134,6 +140,12 @@ $cbr set packet_size_ 50
 $cbr set rate_ 0.1Mb
 $cbr set interval_ 0.1
 #$cbr set random_ false
+
+set pktType cbr
+
+
+Mac/802_15_4 wpanNam FlowClr -p $pktType -s 0 -d 1 -c blue
+Mac/802_15_4 wpanNam FlowClr -p $pktType -s 1 -d 0 -c green4
 
 $ns at 0.05 "$cbr start"
 $ns at [expr $val(stop) - 5] "$cbr stop"

@@ -6,13 +6,13 @@ set val(mac)           Mac/802_15_4                 ;# MAC type
 set val(ifq)           Queue/DropTail/PriQueue      ;# interface queue type
 set val(ll)            LL                           ;# link layer type
 set val(ant)           Antenna/OmniAntenna          ;# antenna model
-set val(ifqlen)        100	         	    ;# max packet in ifq
+set val(ifqlen)        2	         	    ;# max packet in ifq
 set val(nn)            2			    ;# number of mobilenodes
 set val(rp)            NOAH			    ;# protocol tye
 set val(x)             10			    ;# X dimension of topography
 set val(y)             10			    ;# Y dimension of topography
-set val(stop)          2			    ;# simulation period 
-set val(energymodel)   EnergyModel		    ;# Energy Model
+set val(stop)          3			    ;# simulation period 
+# set val(energymodel)   EnergyModel		    ;# Energy Model
 set val(initialenergy) 100			    ;# value
 
 set namtracename    t2.nam
@@ -24,6 +24,7 @@ set namtrace      	[open $namtracename w]
 $ns trace-all $tracefd
 $ns namtrace-all-wireless $namtrace $val(x) $val(y)
 
+$ns puts-nam-traceall {# nam4wpan #}       ;# inform nam that this is a trace file for wpan (special handling needed)
 
 Mac/802_15_4 wpanCmd verbose on
 Mac/802_15_4 wpanNam namStatus on       ;# default = off (should be turned on before other 'wpanNam' commands can work)
@@ -66,12 +67,12 @@ $ns node-config \
              -routerTrace ON \
              -macTrace  OFF \
              -movementTrace OFF \
-             -energyModel $val(energymodel) \
              -initialEnergy $val(initialenergy) \
              -rxPower 35.28e-3 \
              -txPower 31.32e-3 \
          -idlePower 712e-6 \
-         -sleepPower 144e-9 
+         -sleepPower 144e-9  
+         # -energyModel $val(energymodel) \
 
 
 for {set i 0} {$i < $val(nn) } { incr i } {
@@ -122,8 +123,14 @@ for {set i 0} {$i < $val(nn)} { incr i } {
     $ns initial_node_pos $mnode_($i) 10
 }
 
+$ns at 0.0 "$mnode_(0) NodeLabel PAN Coor"
+$ns at 0.0 "$mnode_(0) sscs startPANCoord 0 3 3"
+$ns at 0.5 "$mnode_(1) sscs startDevice 0 0 0"
+
+
 #Setup a UDP connection
 set udp [new Agent/UDP]
+# set udp [new Agent/DumbAgent]
 $ns attach-agent $mnode_(1) $udp
 
 set sink [new Agent/Null]
@@ -136,19 +143,19 @@ $udp set fid_ 2
 set cbr [new Application/Traffic/CBR]
 $cbr attach-agent $udp
 $cbr set type_ CBR
-$cbr set packet_size_ 50
-$cbr set rate_ 0.1Mb
-$cbr set interval_ 0.1
+$cbr set packet_size_ 120
+# $cbr set rate_ 0.1Mb
+$cbr set interval_ 0.005
 #$cbr set random_ false
 
 set pktType cbr
 
 
-Mac/802_15_4 wpanNam FlowClr -p $pktType -s 0 -d 1 -c blue
-Mac/802_15_4 wpanNam FlowClr -p $pktType -s 1 -d 0 -c green4
+# Mac/802_15_4 wpanNam FlowClr -p $pktType -s 0 -d 1 -c blue
+# Mac/802_15_4 wpanNam FlowClr -p $pktType -s 1 -d 0 -c green4
 
-$ns at 0.05 "$cbr start"
-$ns at [expr $val(stop) - 5] "$cbr stop"
+$ns at 2 "$cbr start"
+$ns at [expr $val(stop) - 0.1] "$cbr stop"
 
 # Telling nodes when the simulation ends
 for {set i 0} {$i < $val(nn) } { incr i } {
@@ -158,17 +165,18 @@ for {set i 0} {$i < $val(nn) } { incr i } {
 
 # ending nam and the simulation
 $ns at $val(stop) "$ns nam-end-wireless $val(stop)"
-$ns at $val(stop) "stop"
+# $ns at $val(stop) "stop"
+$ns at 2.5 "stop"
 $ns at [expr $val(stop) + 0.01] "puts \"end simulation\"; $ns halt"
 proc stop {} {
     global ns tracefd namtrace
     $ns flush-trace
-    close $tracefd
-    close $namtrace
+    # close $tracefd
+    # close $namtrace
 
     set hasDISPLAY 0
     foreach index [array names env] {
-        #puts "$index: $env($index)"
+        puts "$index: $env($index)"
         if { ("$index" == "DISPLAY") && ("$env($index)" != "") } {
                 set hasDISPLAY 1
         }
@@ -177,6 +185,7 @@ proc stop {} {
         exec nam $namtracename &
     }
 }
+
 
 $ns run
 
