@@ -6,13 +6,14 @@ from pprint import pprint
 
 import matplotlib.pyplot as plt 
 
-from itertools import izip
+
 from collections import namedtuple
 
 from ns2_parse import parse_log_file, parse_tr_file
+from common import pairwise
 
-# et = parse_log_file('log.txt')
-et = parse_tr_file('t4.tr')
+et = parse_log_file('log.txt')
+# et = parse_tr_file('t4.tr')
 tx = et.tx
 rx = et.rx
 drops = et.drops
@@ -20,10 +21,6 @@ nodes = et.lastNode()
 # print (tx)
 
 
-def pairwise(iterable):
-    "s -> (s0,s1), (s2,s3), (s4, s5), ..."
-    a = iter(iterable)
-    return izip(a, a)
 
 lines = {}
 
