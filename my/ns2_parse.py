@@ -67,6 +67,14 @@ EventTypes.lastNode = lastNode
 # rx = {}
 # drops = {}
 
+def is_time_ok(time, skip_time):
+	if not skip_time: return True
+
+	if skip_time[0] > time: return False
+	if len(skip_time) > 1 and time > skip_time[1]: return False
+
+	return True
+
 def try_int(val):
 	try:
 		return int(val)
@@ -83,7 +91,7 @@ def parse_log_info(info):
 	return ip
 
 
-def parse_log_mo(r, m, et):
+def parse_log_mo(r, m, et, skip_time):
 	md = m.groupdict()
 	node = int(md['node'])
 
@@ -91,6 +99,9 @@ def parse_log_mo(r, m, et):
 		et.addNode(node)
 
 	time = float(md['time'])
+
+	if not is_time_ok(time, skip_time): return
+
 	infos = md['info']
 	infod = parse_log_info(infos)
 
@@ -112,13 +123,13 @@ def parse_log_mo(r, m, et):
 
 
 
-def parse_log_line(l, et):
+def parse_log_line(l, et, skip_time):
 	# print (l)
 	for r in rs_log:
 		m = r.search(l)
 		# print (m)
 		if m:
-			parse_log_mo(r, m, et)
+			parse_log_mo(r, m, et, skip_time)
 			return
 
 def parse_tr_info(info):
@@ -133,7 +144,7 @@ def parse_tr_info(info):
 	# print(ip)
 	return ip
 
-def parse_tr_mo(r, m, et):
+def parse_tr_mo(r, m, et, skip_time):
 	md = m.groupdict()
 	node = int(md['node'])
 
@@ -141,6 +152,9 @@ def parse_tr_mo(r, m, et):
 		et.addNode(node)
 
 	time = float(md['time'])
+
+	if not is_time_ok(time, skip_time): return
+
 	infos = md['info']
 	infod = parse_tr_info(infos)
 
@@ -160,32 +174,29 @@ def parse_tr_mo(r, m, et):
 		# pprint(drops)
 
 
-def parse_tr_line(l, et):
+def parse_tr_line(l, et, skip_time):
 	for r in rs_tr:
 		# print (l)
 		m = r.search(l)
 		# print (m)
 		if m:
-			parse_tr_mo(r, m, et)
+			parse_tr_mo(r, m, et, skip_time)
 			return
 
-def parse_log_file(fname):
+def parse_file(func, fname, skip_time):
 	et = EventTypes({}, {}, {})
 
 	with open(fname) as f:
 		for line in f:
-			parse_log_line(line, et)
+			func(line, et, skip_time)
 
 	return et
 
-def parse_tr_file(fname):
-	et = EventTypes({}, {}, {})
+def parse_log_file(fname, skip_time = None):
+	return parse_file(parse_log_line, fname, skip_time)
 
-	with open(fname) as f:
-		for line in f:
-			parse_tr_line(line, et)
-
-	return et
+def parse_tr_file(fname, skip_time = None):
+	return parse_file(parse_tr_line, fname, skip_time)
 
 if __name__ == '__main__':
 	et = EventTypes({}, {}, {})

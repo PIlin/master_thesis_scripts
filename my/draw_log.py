@@ -12,8 +12,9 @@ from collections import namedtuple
 from ns2_parse import parse_log_file, parse_tr_file
 from common import pairwise
 
-et = parse_log_file('log.txt')
-# et = parse_tr_file('t4.tr')
+# et = parse_log_file('log.txt', [3.3,3.5])
+et = parse_log_file('log.txt', [0,])
+# et = parse_tr_file('t5.tr')
 tx = et.tx
 rx = et.rx
 drops = et.drops
@@ -32,7 +33,7 @@ def draw(src, ax, color):
 		# bt.append((a.t, b.t-a.t))
 		y = 0.5
 		if a.ip['type'] == 'M_BEACON': y = y + 0.3
-		l = ax.fill_between([a.t, b.t], [y, y], color = color, picker=True)
+		l = ax.fill_between([a.t, b.t], [y-0.2*y, y], color = color, picker=True)
 		lines[l] = a
 	# print(bt)
 
