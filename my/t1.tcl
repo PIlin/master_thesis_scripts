@@ -15,6 +15,8 @@ set val(stop)          2			    ;# simulation period
 set val(energymodel)   EnergyModel		    ;# Energy Model
 set val(initialenergy) 100			    ;# value
 
+Agent/NOAH set be_random_ 0
+
 set namtracename    t1.nam
 
 set ns        		[new Simulator]

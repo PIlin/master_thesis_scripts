@@ -17,6 +17,7 @@ set val(y)             10			    ;# Y dimension of topography
 # set val(energymodel)   EnergyModel		    ;# Energy Model
 set val(initialenergy) 100			    ;# value
 
+Agent/NOAH set be_random_ 0
 
 set val(operationStart) 1
 set val(stop)           10.1                ;# simulation period 

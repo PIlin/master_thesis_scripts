@@ -20,6 +20,7 @@ set val(initialenergy) 100			    ;# value
 set val(assocStart) 0.4
 set val(assocTime) 1
 
+Agent/NOAH set be_random_ 0
 
 # set val(operationStart) 1
 set val(operationStart) [expr $val(assocStart) + $val(assocTime) * $val(nn)]
