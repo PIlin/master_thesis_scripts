@@ -1,3 +1,7 @@
+
+# simple unslotted broadcast
+
+
 set val(chan)          Channel/WirelessChannel      ;# channel type
 set val(prop)          Propagation/TwoRayGround     ;# radio-propagation model
 set val(netif)         Phy/WirelessPhy/802_15_4     ;# network interface type
@@ -15,7 +19,7 @@ set val(initialenergy) 100			    ;# value
 
 
 set val(operationStart) 1
-set val(stop)           7.1                ;# simulation period 
+set val(stop)           10.1                ;# simulation period 
 
 set val(bmsg-interval) 0.016666667      ;# 1/60
 set val(bmsg-size)     120              ;# 1..120
