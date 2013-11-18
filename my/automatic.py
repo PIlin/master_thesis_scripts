@@ -148,15 +148,15 @@ def save(tf, opts, data):
 # 	return
 
 def do_test(name):
-	for size in range(1,121):
-		opts = ["%d" % (size,)]
-		brc, bout, berr = call_ns(['%s.tcl' % (name,)] + opts)
+	for bo in range(1,11):
+		so = bo
+		for size in [1,50,100,120]:
+			opts = ("%d %d %d" % (size, bo, so)).split()
+			brc, bout, berr = call_ns(['%s.tcl' % (name,)] + opts)
 
+			res = parse_result('%s.tr' % (name,), bout)
 
-
-		res = parse_result('%s.tr' % (name,), bout)
-
-		save(name, opts, res)
+			save(name, opts, res)
 
 
 

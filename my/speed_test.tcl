@@ -24,8 +24,9 @@ Agent/NOAH set be_random_ 0
 
 
 
-set argSize [lindex $argv 0]      
-# set arg2 [lindex $argv 1]
+set argSize [lindex $argv 0]
+set argBO [lindex $argv 1]
+set argSO [lindex $argv 2]
 
 # set val(operationStart) 1
 set val(operationStart) [expr $val(assocStart) + $val(assocTime) * $val(nn)]
@@ -36,9 +37,9 @@ set val(bmsg-size)     [expr {$argSize != "" ? $argSize : 120}]              ;# 
 set val(bmsg-start)    $val(operationStart)
 set val(bmsg-stop)    [expr $val(stop) - 0.1]
 
-set val(BO) 3
-set val(SO) 3
-set val(beacon_enabled) 0
+set val(BO) [expr {$argBO != "" ? $argBO : 3}]
+set val(SO) [expr {$argSO != "" ? $argSO : 3}]
+set val(beacon_enabled) 1
 # set val(GTS_setting) 0xAE
 
 set namtracename    speed_test.nam
