@@ -21,6 +21,9 @@ phy_send = re.compile('.*p802_15_4phy.cc::recv\]\[(?P<time>.*)\]\(node (?P<node>
 phy_sendOver_test = r"[wpan/p802_15_4phy.cc::sendOverHandler][0.000768](node 0) sending over: type = M_CM7_Bcn-Req, src = 0, dst = -1, uid = 0, mac_uid = 0, size = 14"
 phy_sendOver = re.compile('.*p802_15_4phy.cc::sendOverHandler\]\[(?P<time>.*)\]\(node (?P<node>.*)\) sending over: (?P<info>.*)')
 
+phy_forceTrxOff_test =  r"[wpan/p802_15_4phy.cc::PLME_SET_TRX_STATE_request][3.950720](node 0) FORCE_TRX_OFF sets error bit for outgoing pkt: type = tcp, src = 0, dst = 0, uid = 0, mac_uid = 0, size = 0"
+phy_forceTrxOff = re.compile('.*p802_15_4phy.cc::PLME_SET_TRX_STATE_request\]\[(?P<time>.*)\]\(node (?P<node>.*)\) sending over: (?P<info>.*)')
+
 mac_drop_test = r"[D][APS][wpan/p802_15_4mac.cc::recv::1204][0.664063](node 2) dropping pkt: type = M_CM7_Bcn-Req, src = 1, dst = -1, uid = 0, mac_uid = 3, size = 8"
 mac_drop = re.compile('\[D\]\[(?P<reason>.*?)\].*p802_15_4mac.cc::recv:{0,2}(?P<line>.*)\]\[(?P<time>.*)\]\(node (?P<node>.*)\) dropping pkt: (?P<info>.*)')
 
@@ -183,20 +186,30 @@ def parse_tr_line(l, et, skip_time):
 			parse_tr_mo(r, m, et, skip_time)
 			return
 
-def parse_file(func, fname, skip_time):
+def parse_stream(func, s, skip_time):
 	et = EventTypes({}, {}, {})
 
-	with open(fname) as f:
-		for line in f:
-			func(line, et, skip_time)
+	for line in s:
+		func(line, et, skip_time)
 
 	return et
+
+def parse_file(func, fname, skip_time):
+	with open(fname) as f:
+		return parse_stream(func, f, skip_time)
 
 def parse_log_file(fname, skip_time = None):
 	return parse_file(parse_log_line, fname, skip_time)
 
 def parse_tr_file(fname, skip_time = None):
 	return parse_file(parse_tr_line, fname, skip_time)
+
+def parse_log_stream(stream, skip_time = None):
+	return parse_stream(parse_log_line, stream, skip_time)
+
+def parse_tr_stream(stream, skip_time = None):
+	return parse_stream(parse_tr_line, stream, skip_time)
+
 
 if __name__ == '__main__':
 	et = EventTypes({}, {}, {})
