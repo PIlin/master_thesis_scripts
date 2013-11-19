@@ -60,7 +60,7 @@ def jitter(rx):
 tps = []
 jts = []
 
-for i in range(1,120):
+for i in range(1,121):
 	info = read_file('test_speed_test_%d_.data' % (i,))
 	tr = info[0]
 
