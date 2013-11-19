@@ -197,44 +197,44 @@ for {set i 1} {$i < $val(nn)} { incr i } {
 
 
 
-# for {set i 0} {$i < $val(nn)} { incr i } {
-#     set agent($i) [new Agent/Broadcastbase]
-#     $mnode_($i) attach $agent($i) 250
-#     $agent($i) set fid_ $i
-#     set game($i) [new Application/BroadcastbaseApp] 
-#     $game($i) set bsize_ $val(bmsg-size)
-#     $game($i) set bmsg-interval_ $val(bmsg-interval)
-#     $game($i) set propagate_ 0
-#     $game($i) attach-agent $agent($i)     
+for {set i 0} {$i < $val(nn)} { incr i } {
+    set agent($i) [new Agent/Broadcastbase]
+    $mnode_($i) attach $agent($i) 250
+    $agent($i) set fid_ $i
+    set game($i) [new Application/BroadcastbaseApp] 
+    $game($i) set bsize_ $val(bmsg-size)
+    $game($i) set bmsg-interval_ $val(bmsg-interval)
+    $game($i) set propagate_ 0
+    $game($i) attach-agent $agent($i)     
+}
+$ns at $val(bmsg-start) "$game(0) start "
+$ns at $val(bmsg-stop)  "$game(0) stop "
+
+# for {set i 0} {$i <  $val(nn) } {incr i} {
+#     $ns at $val(bmsg-stop)    "$game($i) print-trace" 
 # }
-# $ns at $val(bmsg-start) "$game(0) start "
-# $ns at $val(bmsg-stop)  "$game(0) stop "
-
-# # for {set i 0} {$i <  $val(nn) } {incr i} {
-# #     $ns at $val(bmsg-stop)    "$game($i) print-trace" 
-# # }
 
 
 
-#Setup a UDP connection
-set udp [new Agent/UDP]
-$ns attach-agent $mnode_(0) $udp
-set sink [new Agent/Null]
-$ns attach-agent $mnode_(1) $sink
+# #Setup a UDP connection
+# set udp [new Agent/UDP]
+# $ns attach-agent $mnode_(0) $udp
+# set sink [new Agent/Null]
+# $ns attach-agent $mnode_(1) $sink
 
-$ns connect $udp $sink
-$udp set fid_ 1
+# $ns connect $udp $sink
+# $udp set fid_ 1
 
-#Setup a CBR over UDP connection
-set cbr [new Application/Traffic/CBR]
-$cbr attach-agent $udp
-$cbr set type_ CBR
-$cbr set packet_size_ $val(bmsg-size)
-$cbr set interval_ $val(bmsg-interval)
-set pktType cbr
+# #Setup a CBR over UDP connection
+# set cbr [new Application/Traffic/CBR]
+# $cbr attach-agent $udp
+# $cbr set type_ CBR
+# $cbr set packet_size_ $val(bmsg-size)
+# $cbr set interval_ $val(bmsg-interval)
+# set pktType cbr
 
-$ns at $val(bmsg-start) "$cbr start"
-$ns at $val(bmsg-stop) "$cbr stop"
+# $ns at $val(bmsg-start) "$cbr start"
+# $ns at $val(bmsg-stop) "$cbr stop"
 
 
 
