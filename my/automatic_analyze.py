@@ -11,6 +11,7 @@ from common import pairwise
 from itertools import tee, izip
 
 def read_file(fname):
+	print(fname)
 	with open(fname, 'rb') as f:
 		return pickle.load(f)
 
@@ -57,20 +58,24 @@ def jitter(rx):
 
 
 
-tps = []
-jts = []
+tps = {}
+jts = {}
 
-for i in range(1,121):
-	info = read_file('test_speed_test_%d_.data' % (i,))
+for bo in range(1,11):
+	for i in [1,50,100,120]:
+		param = (i, bo, bo)
+		info = read_file('test_speed_test_%d_%d_%d_.data' % param)
 	tr = info[0]
 
 	r1 = filter_receives(tr.rx[1])
 
 	t = troughput(r1)
-	tps.append(t)
+		tps[param] = t
 
 	j = jitter(r1)
-	jts.append(j)
+		jts[param] = j
+
+print(tps)
 
 with open("tps.data", "wb") as f:
 	pickle.dump(tps, f)

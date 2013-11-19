@@ -29,14 +29,16 @@ mac_drop = re.compile('\[D\]\[(?P<reason>.*?)\].*p802_15_4mac.cc::recv:{0,2}(?P<
 
 rs_log = (phy_recv, phy_recvOver, phy_recvOverDrop, phy_send, phy_sendOver, mac_drop)
 
-
+"D 5.684813639 _1_ RTR  CBK 292 exp 10 [0 0 c 800] ------- [12:0 0:11 32 0] "
 "s 5.000427946 _0_ RTR  --- 0 undefined 120 [0 0 0 0] ------- [0:250 -1:250 32 0] "
-tr_std_part = lambda src: '(?P<time>.*) _(?P<node>.*)_ %s .*?--- (?P<info>.*?) \[' % (src,)
+
+tr_std_part = lambda src: '(?P<time>.*) _(?P<node>.*)_ %s  (?P<reason>\D*?) (?P<info>.*?) \[' % (src,)
 tr_re_r = re.compile('r ' + tr_std_part('AGT'))
 tr_re_s = re.compile('s ' + tr_std_part('AGT'))
 tr_re_D = re.compile('D ' + tr_std_part('IFQ'))
+tr_re_D2 = re.compile('D ' + tr_std_part('RTR'))
 
-rs_tr = (tr_re_r, tr_re_s, tr_re_D)
+rs_tr = (tr_re_r, tr_re_s, tr_re_D, tr_re_D2)
 
 
 info_src = re.compile(r'src = ([-\d]*)')
@@ -148,6 +150,9 @@ def parse_tr_info(info):
 	return ip
 
 def parse_tr_mo(r, m, et, skip_time):
+
+	# print (r, m)
+
 	md = m.groupdict()
 	node = int(md['node'])
 
@@ -161,9 +166,14 @@ def parse_tr_mo(r, m, et, skip_time):
 	infos = md['info']
 	infod = parse_tr_info(infos)
 
+	if 'reason' in md:
+		infod['reason'] = md['reason']
+
+	# print (md)
+
 	if r == tr_re_r:
-		if node == 0:
-			return
+		# if node == 0:
+		# 	return
 		et.rx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'r'))
 		et.rx[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 'r'))
 		# pprint(rx)
@@ -171,15 +181,15 @@ def parse_tr_mo(r, m, et, skip_time):
 		et.tx[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 's'))
 		et.tx[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 's'))
 		# pprint(tx)
-	elif r == tr_re_D:
+	elif r == tr_re_D or tr_re_D2:
 		et.drops[node].append(Event(t = time, e = 1, i = infos, ip = infod, type = 'D'))
 		et.drops[node].append(Event(t = time+0.0005, e = 0, i = infos, ip = infod, type = 'D'))
 		# pprint(drops)
 
 
 def parse_tr_line(l, et, skip_time):
+	# pprint (l)
 	for r in rs_tr:
-		# print (l)
 		m = r.search(l)
 		# print (m)
 		if m:
