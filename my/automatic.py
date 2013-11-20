@@ -116,16 +116,21 @@ def parse_result(tr_fname, log_data):
 	# pprint(log)
 	return (tr, log)
 
-
-def save(tf, opts, data):
+def get_result_fname(tf, opts):
 	filename = "test_" + tf + "_"
 	for v in opts:
 		filename = filename + v + "_"
+	filename = filename + ".data"
+	return filename
+	
+
+def save(tf, opts, data):
+
 	# for k,v in opts.iteritems():
 	# 	if v:
 	# 		filename = filename + shortcuts[k] + "_"
 
-	filename = filename + ".data"
+	filename = get_result_fname(tf, opts)
 	print(filename)
 	with open(filename, "wb") as f:
 		pickle.dump(data, f)
@@ -148,10 +153,10 @@ def save(tf, opts, data):
 # 	return
 
 def do_test(name):
-	for bo in range(1,11):
-		so = bo
-		for size in [1,50,100,120]:
-			opts = ("%d %d %d" % (size, bo, so)).split()
+	for inter in [1, 0.1, 0.01]:
+		for size in [5,50,100]:
+			opts = ("%d 10 %f" % (size, inter)).split()
+			# opts = "5 10 0.1".split()
 			brc, bout, berr = call_ns(['%s.tcl' % (name,)] + opts)
 
 			res = parse_result('%s.tr' % (name,), bout)
@@ -165,5 +170,5 @@ def do_test(name):
 
 
 
-do_test('speed_test')
+do_test('backtraffic_test')
 # do_test_parallel(possible_options)
