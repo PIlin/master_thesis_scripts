@@ -7,6 +7,8 @@
 import sys
 import pickle
 
+import numpy as np
+
 from pprint import pprint
 
 import matplotlib
@@ -32,7 +34,7 @@ import matplotlib.pyplot as plt
 
 
 data = {}
-files = ('tps',)
+files = ('tps', 'dls')
 for fn in files:
 	fname = fn + '.data'
 	with open(fname, "rb") as f:
@@ -54,31 +56,31 @@ def new_figure(figsize = (6,4)):
 	return f
 
 
-def draw_throughput(ax, data, style, label):
+def draw_throughput(ax, data, xdata, style, label):
 	x = range(1, len(data) + 1)
 
 	print(len(x), len(data))
 
 	d = [d / 1000 for d in data]
 
-	ax.plot([1,50,100,120], d, style, markersize = 3, label = label)
+	ax.plot(xdata, d, style, markersize = 4, label = label)
 
-	plt.xticks([0,50,100,120])
+	# plt.xticks(xdata)
 
-	ax.set_xlabel(u"Розмір корисного навантаження пакету, байт")
+	ax.set_xlabel(u"Середній час між відправками пакету вузлом, с")
 	ax.set_ylabel(u"Корисна пропускна здібність, Кбіт/с")
 
-def draw_jitter(ax, data):
+def draw_delay(ax, data):
 
 	print(len(data))
 
-	idx = [0]
-	idx.extend(range(19,120,20))
+	# idx = [0]
+	# idx.extend(range(19,120,20))
 
 
 	print(idx)
 
-	d = [[x * 1000 for x in data[i]] for i in idx]
+	# d = [[x * 1000 for x in data[i]] for i in idx]
 
 	bp = ax.boxplot(d,0,'')
 	plt.xticks(range(1, len(idx) + 1), [i + 1 for i in idx])
@@ -93,27 +95,75 @@ def draw_jitter(ax, data):
 	ax.set_ylabel(u"Затримка передачі, мс")
 
 
+
+
 # print (f.get_size_inches())
 
 
 tps = data['tps']
+dls = data['dls']
+# pprint(dls)
+# dls_s = dls[0]
+# dls_f = dls[1]
 pprint(tps)
+
+# sys.exit()
+
+
 
 f = new_figure()
 ax = f.add_subplot(111)
-style = {1:'o-', 3:'^--', 5:'s-.', 7:'*-'}
-for bo in [1,3,5,7]:
+style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
+# ss = sorted([0.005, 
+# 	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.075, 0.09, 
+# 	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
+ss = sorted([0.005, 
+	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.075, 
+	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
+for count in [5,50,100]:
 	d =[]
-	for s in [1,50,100,120]:
-		d.append(tps[(s,bo,bo)])
+	
+
+	for s in ss:
+		d.append(tps[('%d' % (count,),'10','%f'%(s,))])
 	print(d)
 
-	draw_throughput(ax, d, 'k'+style[bo], u'BO=SO=%d' % bo)
+	draw_throughput(ax, d, ss, 'k'+style[count], u'nn = %d' % count)
 
 ax.legend(loc = 0)
 ax.grid()
+ax.set_xscale('log')
+ticks = np.arange(0.005, 0.01, 0.001).tolist()
+ticks.extend(np.arange(0.01, 0.1, 0.01).tolist())
+ticks.extend(np.arange(0.1, 1, 0.1).tolist())
+ticks.extend([1])
+print(ticks)
+plt.xticks(ticks)
+ax.set_xlim(0.005, 1)
+ax.set_ylim(0, 30)
 f.savefig('tp.pdf')
 f.savefig('tp.pgf')
+
+
+
+# f = new_figure()
+# ax = f.add_subplot(111)
+# style = {5:'o-', 50:'^--', 100:'s-.', 7:'*-'}
+# for count in [5,50,100]:
+# 	d =[]
+# 	ss = sorted([1, 0.1, 0.01, 0.04, 0.07, 0.09, 0.5])
+# 	for s in ss:
+# 		d.append(dls_s[('%d' % (count,),'10','%f'%(s,))])
+# 	print(d)
+
+# 	draw_delay(ax, d)
+
+# ax.legend(loc = 0)
+# ax.grid()
+# # f.savefig('jt.pdf')
+# # f.savefig('jt.pgf')
+
+
 
 # f = new_figure()
 # ax = f.add_subplot(111)

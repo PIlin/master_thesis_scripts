@@ -10,7 +10,7 @@ from pprint import pprint
 from common import pairwise
 from itertools import tee, izip
 
-def read_file(fname):
+def read_results_file(fname):
 	print(fname)
 	with open(fname, 'rb') as f:
 		return pickle.load(f)
@@ -20,6 +20,9 @@ def filter_starts(rx):
 
 
 def troughput(rx):
+	if not rx:
+		return 0
+
 	start_time = rx[0].t
 	stop_time = rx[-1].t
 	bytes = 0
@@ -57,6 +60,8 @@ def jitter(rx):
 	return x
 def delay(trace, rx0):
 
+	# print(trace)
+
 	rt = {}
 	tt = {}
 	dt = {}
@@ -82,8 +87,9 @@ def delay(trace, rx0):
 	suc = []
 	fail = []
 
+	print('=== delay ===')
 
-	pprint(trace.drops)
+	# pprint(trace.drops)
 	print(len(tt), len(dt), len(rt))
 	# assert(len(tt) == len(dt) + len(rt))
 
@@ -92,7 +98,7 @@ def delay(trace, rx0):
 			vr = rt[k]
 			assert(vr > vt)
 			suc.append(vr - vt)
-			print(vr, vt, vr - vt)
+			# print(vr, vt, vr - vt)
 		elif k in dt:
 			vd = dt[k]
 			assert(vd > vt)
@@ -102,7 +108,6 @@ def delay(trace, rx0):
 			# pprint(rx0)
 			assert(False)
 
-	print('=== delay ===')
 
 	if suc:
 		print('suc')
@@ -125,9 +130,29 @@ def delay(trace, rx0):
 
 
 
-tps = {}
-jts = {}
-dls = {}
+# =======================================
+
+files = ('tps', 'jts', 'dls')
+data = {}
+
+def read_data_file(fn):
+	try:
+		fname = fn + '.data'
+		with open(fname, "rb") as f:
+			data[fn] = pickle.load(f)
+	except:
+		print(sys.exc_info())
+		pass
+
+for fn in files:
+	data[fn] = {}
+	read_data_file(fn)
+
+
+# pprint(data['tps'])
+
+# sys.exit()
+
 
 def get_result_fname(tf, opts):
 	filename = "test_" + tf + "_"
@@ -136,31 +161,40 @@ def get_result_fname(tf, opts):
 	filename = filename + ".data"
 	return filename
 
-for inter in [1, 0.1, 0.01]:
+# for inter in [0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.07, 0.075, 0.09, 0.1, 0.2, 0.5, 1]:
+for inter in [0.05, 0.06, 0.15, 0.3, 0.4]:
 	for size in [5,50,100]:
+	# for size in [100]:
 		opts = tuple(("%d 10 %f" % (size, inter)).split())
 		# print(opts)
 		fname = get_result_fname('backtraffic_test', opts)
-		info = read_file(fname)
+		info = read_results_file(fname)
 		tr = info[0]
 
-		r0 = filter_starts(tr.rx[0])
+		r0 = filter_starts(tr.rx[0] if tr.rx else [])
 
 		t = troughput(r0)
-		tps[opts] = t
+		data['tps'][opts] = t
 
 		# j = jitter(r0)
-		# jts[opts] = j
+		# data['jts'][opts] = j
 
 		d = delay(tr, r0)
-		dls[opts] = d
+		data['dls'][opts] = d
 
-print(dls)
+		print('\n\n')
 
-with open("tps.data", "wb") as f:
-	pickle.dump(tps, f)
+# print(dls)
 
-with open("jts.data", "wb") as f:
-	pickle.dump(jts, f)
-with open("dls.data", "wb") as f:
-	pickle.dump(dls, f)
+# sys.exit()
+
+for fn in files:
+	fname = fn + '.data'
+	with open(fname, "wb") as f:
+		pickle.dump(data[fn], f)
+		# eval('pickle.dump(%s, f)' % (fn,))
+		
+# with open("jts.data", "wb") as f:
+# 	pickle.dump(jts, f)
+# with open("dls.data", "wb") as f:
+# 	pickle.dump(dls, f)
