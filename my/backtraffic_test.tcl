@@ -9,7 +9,7 @@ set val(ifq)           Queue/DropTail/PriQueue      ;# interface queue type
 set val(ll)            LL/LL802_15_4                           ;# link layer type
 # set val(ll)            LL                           ;# link layer type
 set val(ant)           Antenna/OmniAntenna          ;# antenna model
-set val(ifqlen)        2	         	    ;# max packet in ifq
+set val(ifqlen)        3	         	    ;# max packet in ifq
 
 set val(rp)            NOAH			    ;# protocol tye
 set val(x)             10			    ;# X dimension of topography
@@ -17,8 +17,8 @@ set val(y)             10			    ;# Y dimension of topography
 # set val(energymodel)   EnergyModel		    ;# Energy Model
 set val(initialenergy) 100			    ;# value
 
-set val(assocStart) 0.4
-set val(assocTime) 1
+set val(assocStart) 0.6
+set val(assocTime) 1.3
 
 Agent/NOAH set be_random_ 0
 
@@ -30,8 +30,8 @@ set argSize [lindex $argv 3]
 # set argBO [lindex $argv 1]
 # set argSO [lindex $argv 2]
 
-set argBO ""
-set argSO ""
+set argBO "5"
+set argSO "5"
 
 set val(nn)  [expr {$argNN != "" ? $argNN : 2}]                ;# number of mobilenodes
 
@@ -53,8 +53,8 @@ set val(pois-stop)    [expr $val(stop) - 0.1]
 
 set val(BO) [expr {$argBO != "" ? $argBO : 3}]
 set val(SO) [expr {$argSO != "" ? $argSO : 3}]
-set val(beacon_enabled) 0
-# set val(GTS_setting) 0xAE
+set val(beacon_enabled) 1
+set val(GTS_setting) 0x8E
 
 set namtracename    backtraffic_test.nam
 
@@ -132,6 +132,17 @@ proc setNodeGTS {node gts} {
 if {[info exists val(GTS_setting)]} {
     setNodeGTS $mnode_(0) 1
 }
+
+proc setNodeIfqLen {node qlen} {
+    set mac [ [set node] getMac 0]
+    puts $mac
+    set ll [$mac up-target]
+    puts $ll
+    set ifq [$ll down-target]
+    $ifq set limit_ $qlen
+}
+
+setNodeIfqLen $mnode_(0) 1000
 
 # exit
 

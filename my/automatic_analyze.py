@@ -147,9 +147,15 @@ def delivery_rate(trace):
 				rt[num] = rt[num] + 1
 				counter = counter + 1
 
+	lentt = len(tt)
+
+	for drop in trace.drops[0]:
+		if drop.e == 1 and drop.ip['reason'] == 'END':
+			lentt = lentt - 1
+
 	print('=== delivery rate ===')
 
-	res = (len(tt), counter, 1.0 * counter / len(tt) / (len(trace.tx) - 1))
+	res = (lentt, counter, 1.0 * counter / lentt / (len(trace.tx) - 1))
 
 	print(res)
 
