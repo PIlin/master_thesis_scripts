@@ -150,16 +150,24 @@ f = new_figure()
 ax = f.add_subplot(111)
 style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
 ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
-for count in [5,50,100]:
+
+crashed = set([0.01, 0.4, 0.7])
+
+for count in [5,50]:
 	succ=[]
 	fail=[]
+	ss_cap = []
 	for s in ss:
-		# print(len(dls[('%d' % (count,),'10','%f'%(s,))]))
-		dls_s = dls[('%d' % (count,),'10','%f'%(s,))][0]
-		dls_f = dls[('%d' % (count,),'10','%f'%(s,))][1]
-		# d.append(dls_s[('%d' % (count,),'10','%f'%(s,))])
-		succ.append(len(dls_s))
-		fail.append(len(dls_f))
+		if count == 100 and s in crashed:
+			print('skip', s)
+		else:
+			ss_cap.append(s)
+			# print(len(dls[('%d' % (count,),'10','%f'%(s,))]))
+			dls_s = dls[('%d' % (count,),'10','%f'%(s,))][0]
+			dls_f = dls[('%d' % (count,),'10','%f'%(s,))][1]
+			# d.append(dls_s[('%d' % (count,),'10','%f'%(s,))])
+			succ.append(len(dls_s))
+			fail.append(len(dls_f))
 	
 
 	succ = np.array(succ, dtype=np.float)
@@ -175,7 +183,7 @@ for count in [5,50,100]:
 	# print(fail_rate)
 	# sys.exit()
 
-	draw_throughput(ax, succ_rate, ss, 'k'+style[count], u'nn = %d' % count)
+	draw_throughput(ax, succ_rate, ss_cap, 'k'+style[count], u'nn = %d' % count)
 	# draw_throughput(ax, fail, ss, 'k'+style[count], u'nn = %d' % count)
 
 	# draw_delay(ax, d)
@@ -205,13 +213,23 @@ style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
 # 	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.075, 0.09, 
 # 	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
 ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
-for count in [5,50,100]:
+
+crashed = set([0.01, 0.4, 0.7])
+
+for count in [5,50]:
 	d =[]
+	ss_cap = []
 	for s in ss:
 		# d.append(tps[('%d' % (count,),'10','%f'%(s,))][0] / 1000)
-		d.append(deliv[('%d' % (count,),'10','%f'%(s,))][2] * 100)
+
+		if count == 100 and s in crashed:
+			print('skip', s)
+		else:
+			d.append(deliv[('%d' % (count,),'10','%f'%(s,))][2] * 100)
+			ss_cap.append(s)
+
 	print(d)
-	draw_throughput(ax, d, ss, 'k'+style[count], u'nn = %d' % count)
+	draw_throughput(ax, d, ss_cap, 'k'+style[count], u'nn = %d' % count)
 
 ax.legend(loc = 0)
 ax.grid()
@@ -224,7 +242,7 @@ ticks.extend([1])
 print(ticks)
 plt.xticks(ticks)
 # ax.set_xlim(0.005, 1)
-# ax.set_ylim(0, 30)
+ax.set_ylim(95, 105)
 f.savefig('deliv.pdf')
 f.savefig('deliv.pgf')
 
@@ -256,4 +274,4 @@ f.savefig('deliv.pgf')
 # f.savefig('jts_noack.pgf')
 
 
-# plt.show()
+plt.show()
