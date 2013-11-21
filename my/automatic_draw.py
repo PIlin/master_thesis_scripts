@@ -113,20 +113,71 @@ pprint(len(dls))
 
 
 
+# f = new_figure()
+# ax = f.add_subplot(111)
+# style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
+# # ss = sorted([0.005, 
+# # 	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.075, 0.09, 
+# # 	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
+# ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
+# for count in [5,50,100]:
+# 	d =[]
+# 	for s in ss:
+# 		# d.append(tps[('%d' % (count,),'10','%f'%(s,))][0] / 1000)
+# 		d.append(tps[('%d' % (count,),'10','%f'%(s,))][1] / 1000)
+# 	print(d)
+# 	draw_throughput(ax, d, ss, 'k'+style[count], u'nn = %d' % count)
+
+# ax.legend(loc = 0)
+# ax.grid()
+# ax.set_xscale('log')
+# ticks = []
+# # ticks.extend(np.arange(0.005, 0.01, 0.001).tolist())
+# ticks.extend(np.arange(0.01, 0.1, 0.01).tolist())
+# ticks.extend(np.arange(0.1, 1, 0.1).tolist())
+# ticks.extend([1])
+# print(ticks)
+# plt.xticks(ticks)
+# # ax.set_xlim(0.005, 1)
+# # ax.set_ylim(0, 30)
+# # f.savefig('tp.pdf')
+# # f.savefig('tp.pgf')
+
+
+
 f = new_figure()
 ax = f.add_subplot(111)
 style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
-# ss = sorted([0.005, 
-# 	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.075, 0.09, 
-# 	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
 ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
 for count in [5,50,100]:
-	d =[]
+	succ=[]
+	fail=[]
 	for s in ss:
-		# d.append(tps[('%d' % (count,),'10','%f'%(s,))][0] / 1000)
-		d.append(tps[('%d' % (count,),'10','%f'%(s,))][1] / 1000)
-	print(d)
-	draw_throughput(ax, d, ss, 'k'+style[count], u'nn = %d' % count)
+		# print(len(dls[('%d' % (count,),'10','%f'%(s,))]))
+		dls_s = dls[('%d' % (count,),'10','%f'%(s,))][0]
+		dls_f = dls[('%d' % (count,),'10','%f'%(s,))][1]
+		# d.append(dls_s[('%d' % (count,),'10','%f'%(s,))])
+		succ.append(len(dls_s))
+		fail.append(len(dls_f))
+	
+
+	succ = np.array(succ, dtype=np.float)
+	fail = np.array(fail, dtype=np.float)
+
+	# print(succ)
+	# print(fail)
+	total = succ + fail
+	fail_rate = np.divide(fail, total) * 100
+	succ_rate = np.divide(succ, total) * 100
+
+	# print(total)
+	# print(fail_rate)
+	# sys.exit()
+
+	draw_throughput(ax, succ_rate, ss, 'k'+style[count], u'nn = %d' % count)
+	# draw_throughput(ax, fail, ss, 'k'+style[count], u'nn = %d' % count)
+
+	# draw_delay(ax, d)
 
 ax.legend(loc = 0)
 ax.grid()
@@ -140,58 +191,8 @@ print(ticks)
 plt.xticks(ticks)
 # ax.set_xlim(0.005, 1)
 # ax.set_ylim(0, 30)
-# f.savefig('tp.pdf')
-# f.savefig('tp.pgf')
-
-
-
-# f = new_figure()
-# ax = f.add_subplot(111)
-# style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
-# ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
-# for count in [5,50,100]:
-# 	succ=[]
-# 	fail=[]
-# 	for s in ss:
-# 		# print(len(dls[('%d' % (count,),'10','%f'%(s,))]))
-# 		dls_s = dls[('%d' % (count,),'10','%f'%(s,))][0]
-# 		dls_f = dls[('%d' % (count,),'10','%f'%(s,))][1]
-# 		# d.append(dls_s[('%d' % (count,),'10','%f'%(s,))])
-# 		succ.append(len(dls_s))
-# 		fail.append(len(dls_f))
-	
-
-# 	succ = np.array(succ, dtype=np.float)
-# 	fail = np.array(fail, dtype=np.float)
-
-# 	# print(succ)
-# 	# print(fail)
-# 	total = succ + fail
-# 	fail_rate = np.divide(fail, total) * 100
-# 	succ_rate = np.divide(succ, total) * 100
-
-# 	# print(total)
-# 	# print(fail_rate)
-# 	# sys.exit()
-
-# 	draw_throughput(ax, succ_rate, ss, 'k'+style[count], u'nn = %d' % count)
-# 	# draw_throughput(ax, fail, ss, 'k'+style[count], u'nn = %d' % count)
-
-# 	# draw_delay(ax, d)
-
-# ax.legend(loc = 0)
-# ax.grid()
-# ax.set_xscale('log')
-# ticks = np.arange(0.005, 0.01, 0.001).tolist()
-# ticks.extend(np.arange(0.01, 0.1, 0.01).tolist())
-# ticks.extend(np.arange(0.1, 1, 0.1).tolist())
-# ticks.extend([1])
-# print(ticks)
-# plt.xticks(ticks)
-# ax.set_xlim(0.005, 1)
-# # ax.set_ylim(0, 30)
-# f.savefig('succ_rate.pdf')
-# f.savefig('succ_rate.pgf')
+f.savefig('succ_rate.pdf')
+f.savefig('succ_rate.pgf')
 
 
 
