@@ -12,16 +12,18 @@ from collections import namedtuple
 from ns2_parse import parse_log_file, parse_tr_file
 from common import pairwise
 
-# et = parse_log_file('log.txt', [3.3,3.5])
-et = parse_log_file('log.txt', [0,])
-# et = parse_tr_file('t5.tr')
+# et = parse_log_file('log.txt', [3.0,4])
+# et = parse_log_file('log.txt', [0,])
+et = parse_tr_file('backtraffic_test.tr')
 tx = et.tx
 rx = et.rx
 drops = et.drops
 nodes = et.lastNode() + 1
-# print (tx)
+# pprint (drops)
 
+# pprint(et)
 
+# sys.exit()
 
 lines = {}
 

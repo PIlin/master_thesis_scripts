@@ -153,8 +153,10 @@ def save(tf, opts, data):
 # 	return
 
 def do_test(name):
-	for inter in [1, 0.1, 0.01]:
+	for inter in [1, 0.7, 0.5, 0.3, 0.1, 0.75, 0.5, 0.4, 0.3, 0.2, 0.01]:
 		for size in [5,50,100]:
+	# for inter in [0.01]:
+	# 	for size in [5]:
 			opts = ("%d 10 %f" % (size, inter)).split()
 			# opts = "5 10 0.1".split()
 			brc, bout, berr = call_ns(['%s.tcl' % (name,)] + opts)
