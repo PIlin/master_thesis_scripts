@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 
 
 data = {}
-files = ('tps', 'dls')
+files = ('tps', 'dls', 'deliv')
 for fn in files:
 	fname = fn + '.data'
 	with open(fname, "rb") as f:
@@ -104,10 +104,11 @@ def draw_delay(ax, data):
 
 tps = data['tps']
 dls = data['dls']
+deliv = data['deliv']
 pprint(len(dls))
 # dls_s = dls[0]
 # dls_f = dls[1]
-# pprint(tps)
+pprint(deliv)
 
 # sys.exit()
 
@@ -193,6 +194,40 @@ plt.xticks(ticks)
 # ax.set_ylim(0, 30)
 f.savefig('succ_rate.pdf')
 f.savefig('succ_rate.pgf')
+
+
+
+
+f = new_figure()
+ax = f.add_subplot(111)
+style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
+# ss = sorted([0.005, 
+# 	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.075, 0.09, 
+# 	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
+ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
+for count in [5,50,100]:
+	d =[]
+	for s in ss:
+		# d.append(tps[('%d' % (count,),'10','%f'%(s,))][0] / 1000)
+		d.append(deliv[('%d' % (count,),'10','%f'%(s,))][2] * 100)
+	print(d)
+	draw_throughput(ax, d, ss, 'k'+style[count], u'nn = %d' % count)
+
+ax.legend(loc = 0)
+ax.grid()
+ax.set_xscale('log')
+ticks = []
+# ticks.extend(np.arange(0.005, 0.01, 0.001).tolist())
+ticks.extend(np.arange(0.01, 0.1, 0.01).tolist())
+ticks.extend(np.arange(0.1, 1, 0.1).tolist())
+ticks.extend([1])
+print(ticks)
+plt.xticks(ticks)
+# ax.set_xlim(0.005, 1)
+# ax.set_ylim(0, 30)
+# f.savefig('deliv.pdf')
+# f.savefig('deliv.pgf')
+
 
 
 
