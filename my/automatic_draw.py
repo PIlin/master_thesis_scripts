@@ -69,8 +69,8 @@ def draw_throughput(ax, data, xdata, style, label):
 	# plt.xticks(xdata)
 
 	ax.set_xlabel(u"Середній час між відправками пакету вузлом, с")
-	# ax.set_ylabel(u"Успішно доставлених пакетів, %")
-	ax.set_ylabel(u"Пропускна здібність, Кбіт/с")
+	ax.set_ylabel(u"Успішно доставлених пакетів, %")
+	# ax.set_ylabel(u"Пропускна здібність, Кбіт/с")
 
 def draw_delay(ax, data):
 
@@ -225,8 +225,8 @@ print(ticks)
 plt.xticks(ticks)
 # ax.set_xlim(0.005, 1)
 # ax.set_ylim(0, 30)
-# f.savefig('deliv.pdf')
-# f.savefig('deliv.pgf')
+f.savefig('deliv.pdf')
+f.savefig('deliv.pgf')
 
 
 
@@ -256,4 +256,4 @@ plt.xticks(ticks)
 # f.savefig('jts_noack.pgf')
 
 
-plt.show()
+# plt.show()
