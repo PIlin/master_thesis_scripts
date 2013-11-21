@@ -52,7 +52,8 @@ def jitter(srcs, fig = None, pos = 0):
 	return fig
 
 
-et = parse_log_file('log.txt')
+# et = parse_log_file('log.txt')
+et = parse_tr_file('speed_test.tr')
 
 # transmission_len(et.tx)
 fig = jitter([et.tx[0]])

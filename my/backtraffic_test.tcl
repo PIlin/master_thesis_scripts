@@ -40,7 +40,7 @@ set val(nn)  [expr {$argNN != "" ? $argNN : 2}]                ;# number of mobi
 set val(operationStart) [expr $val(assocStart) + $val(assocTime) * $val(nn)]
 set val(stop)           [expr $val(operationStart) + 10.1]                ;# simulation period 
 
-set val(bmsg-interval) 0.003      ;# 1/60
+set val(bmsg-interval) 0.012      ;# 1/60
 set val(bmsg-size)     [expr {$argSize != "" ? $argSize : 120}]              ;# 1..120
 set val(bmsg-start)    $val(operationStart)
 set val(bmsg-stop)    [expr $val(stop) - 0.1]
@@ -212,18 +212,18 @@ for {set i 1} {$i < $val(nn)} { incr i } {
 
 
 
-# for {set i 0} {$i < $val(nn)} { incr i } {
-#     set agent($i) [new Agent/Broadcastbase]
-#     $mnode_($i) attach $agent($i) 250
-#     $agent($i) set fid_ $i
-#     set game($i) [new Application/BroadcastbaseApp] 
-#     $game($i) set bsize_ $val(bmsg-size)
-#     $game($i) set bmsg-interval_ $val(bmsg-interval)
-#     $game($i) set propagate_ 0
-#     $game($i) attach-agent $agent($i)     
-# }
-# $ns at $val(bmsg-start) "$game(0) start "
-# $ns at $val(bmsg-stop)  "$game(0) stop "
+for {set i 0} {$i < $val(nn)} { incr i } {
+    set agent($i) [new Agent/Broadcastbase]
+    $mnode_($i) attach $agent($i) 250
+    $agent($i) set fid_ $i
+    set game($i) [new Application/BroadcastbaseApp] 
+    $game($i) set bsize_ $val(bmsg-size)
+    $game($i) set bmsg-interval_ $val(bmsg-interval)
+    $game($i) set propagate_ 0
+    $game($i) attach-agent $agent($i)     
+}
+$ns at $val(bmsg-start) "$game(0) start "
+$ns at $val(bmsg-stop)  "$game(0) stop "
 
 
 

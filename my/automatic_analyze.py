@@ -22,7 +22,6 @@ def filter_starts(rx):
 def troughput(rx):
 	if not rx:
 		return 0
-
 	start_time = rx[0].t
 	stop_time = rx[-1].t
 	bytes = 0
@@ -58,26 +57,25 @@ def jitter(rx):
 	print(minj, maxj, meanj, stdj)
 
 	return x
-def delay(trace, rx0):
 
-	# print(trace)
+
+def build_dic(dic, arr):
+	for p in arr:
+		# pprint(p)
+		dic[p.ip['number']] = p.t
+
+def build_dic_from_trace(dic, trace):
+	for number,tnode in trace.iteritems():
+		if number == 0:
+			continue
+		ft = filter_starts(tnode)
+		build_dic(dic, ft)
+
+def delay(trace, rx0):
 
 	rt = {}
 	tt = {}
 	dt = {}
-
-	def build_dic(dic, arr):
-		for p in arr:
-			# pprint(p)
-			dic[p.ip['number']] = p.t
-
-	def build_dic_from_trace(dic, trace):
-		for number,tnode in trace.iteritems():
-			if number == 0:
-				continue
-			ft = filter_starts(tnode)
-			build_dic(dic, ft)
-
 
 	build_dic(rt,rx0)
 	build_dic_from_trace(tt, trace.tx)
@@ -106,7 +104,7 @@ def delay(trace, rx0):
 		else:
 			print('unknown dorp', k)
 			# pprint(rx0)
-			assert(False)
+			# assert(False)
 
 
 	if suc:
@@ -127,12 +125,39 @@ def delay(trace, rx0):
 		print(minj, maxj, meanj, stdj)
 
 	return (suc, fail)
+def delivery_rate(trace):
 
+	tt = {}
+	rt = {}
 
+	build_dic(tt, filter_starts(trace.tx[0]))
+
+	counter = 0
+
+	for number,node in trace.rx.iteritems():
+		if number == 0:
+			continue
+
+		ft = filter_starts(node)
+		for p in ft:
+			num = p.ip['number']
+			if num in tt:
+				#sent by node 0
+				if not (num in rt): rt[num] = 0
+				rt[num] = rt[num] + 1
+				counter = counter + 1
+
+	print('=== delivery rate ===')
+
+	res = (len(tt), counter, 1.0 * counter / len(tt) / (len(trace.tx) - 1))
+
+	print(res)
+
+	return res
 
 # =======================================
 
-files = ('tps', 'jts', 'dls')
+files = ('tps', 'jts', 'dls', 'deliv')
 data = {}
 
 def read_data_file(fn):
@@ -148,11 +173,9 @@ for fn in files:
 	data[fn] = {}
 	read_data_file(fn)
 
-
 # pprint(data['tps'])
 
 # sys.exit()
-
 
 def get_result_fname(tf, opts):
 	filename = "test_" + tf + "_"
@@ -161,23 +184,34 @@ def get_result_fname(tf, opts):
 	filename = filename + ".data"
 	return filename
 
-# for inter in [0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.07, 0.075, 0.09, 0.1, 0.2, 0.5, 1]:
-for inter in [0.05, 0.06, 0.15, 0.3, 0.4]:
+for inter in [1, 0.7, 0.5, 0.3, 0.1, 0.75, 0.5, 0.4, 0.3, 0.2, 0.01]:
 	for size in [5,50,100]:
-	# for size in [100]:
+# for inter in [0.01]:
+# 	for size in [5]:
 		opts = tuple(("%d 10 %f" % (size, inter)).split())
 		# print(opts)
 		fname = get_result_fname('backtraffic_test', opts)
 		info = read_results_file(fname)
 		tr = info[0]
 
-		r0 = filter_starts(tr.rx[0] if tr.rx else [])
+		#
 
-		t = troughput(r0)
-		data['tps'][opts] = t
+		r0 = filter_starts(tr.rx[0])
+		t0 = troughput(r0)
+		
+		r1 = filter_starts(tr.rx[1])
+		t1 = troughput(r1)
 
-		# j = jitter(r0)
-		# data['jts'][opts] = j
+		data['tps'][opts] = (t0, t1)
+
+		#
+
+		# j = jitter(filter_starts(tr.tx[0]))
+		# jts[opts] = j
+
+		data['deliv'][opts] = delivery_rate(tr)
+
+		#
 
 		d = delay(tr, r0)
 		data['dls'][opts] = d
