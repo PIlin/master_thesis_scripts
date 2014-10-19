@@ -69,8 +69,8 @@ def draw_throughput(ax, data, xdata, style, label):
 	# plt.xticks(xdata)
 
 	ax.set_xlabel(u"Середній час між відправками пакету вузлом, с")
-	ax.set_ylabel(u"Успішно доставлених пакетів, %")
-	# ax.set_ylabel(u"Пропускна здібність, Кбіт/с")
+	# ax.set_ylabel(u"Успішно доставлених пакетів, %")
+	ax.set_ylabel(u"Корисна пропускна здібність, Кбіт/с")
 
 def draw_delay(ax, data):
 
@@ -114,20 +114,79 @@ pprint(deliv)
 
 
 
+f = new_figure()
+ax = f.add_subplot(111)
+style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
+# ss = sorted([0.005, 
+# 	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.075, 0.09, 
+# 	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
+ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
+for count in [5,50]:
+	d =[]
+	for s in ss:
+		# d.append(tps[('%d' % (count,),'10','%f'%(s,))][0] / 1000)
+		d.append(tps[('%d' % (count,),'10','%f'%(s,))][1] / 1000)
+	print(d)
+	draw_throughput(ax, d, ss, 'k'+style[count], u'nn = %d' % count)
+
+ax.legend(loc = 0)
+ax.grid()
+ax.set_xscale('log')
+ticks = []
+# ticks.extend(np.arange(0.005, 0.01, 0.001).tolist())
+ticks.extend(np.arange(0.01, 0.1, 0.01).tolist())
+ticks.extend(np.arange(0.1, 1, 0.1).tolist())
+ticks.extend([1])
+print(ticks)
+plt.xticks(ticks)
+# ax.set_xlim(0.005, 1)
+ax.set_ylim(75, 85)
+f.savefig('tp.pdf')
+f.savefig('tp.pgf')
+
+
+
 # f = new_figure()
 # ax = f.add_subplot(111)
 # style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
-# # ss = sorted([0.005, 
-# # 	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.075, 0.09, 
-# # 	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
 # ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
-# for count in [5,50,100]:
-# 	d =[]
+
+# crashed = set([0.01, 0.4, 0.7])
+
+# for count in [5,50]:
+# 	succ=[]
+# 	fail=[]
+# 	ss_cap = []
 # 	for s in ss:
-# 		# d.append(tps[('%d' % (count,),'10','%f'%(s,))][0] / 1000)
-# 		d.append(tps[('%d' % (count,),'10','%f'%(s,))][1] / 1000)
-# 	print(d)
-# 	draw_throughput(ax, d, ss, 'k'+style[count], u'nn = %d' % count)
+# 		if count == 100 and s in crashed:
+# 			print('skip', s)
+# 		else:
+# 			ss_cap.append(s)
+# 			# print(len(dls[('%d' % (count,),'10','%f'%(s,))]))
+# 			dls_s = dls[('%d' % (count,),'10','%f'%(s,))][0]
+# 			dls_f = dls[('%d' % (count,),'10','%f'%(s,))][1]
+# 			# d.append(dls_s[('%d' % (count,),'10','%f'%(s,))])
+# 			succ.append(len(dls_s))
+# 			fail.append(len(dls_f))
+	
+
+# 	succ = np.array(succ, dtype=np.float)
+# 	fail = np.array(fail, dtype=np.float)
+
+# 	# print(succ)
+# 	# print(fail)
+# 	total = succ + fail
+# 	fail_rate = np.divide(fail, total) * 100
+# 	succ_rate = np.divide(succ, total) * 100
+
+# 	# print(total)
+# 	# print(fail_rate)
+# 	# sys.exit()
+
+# 	draw_throughput(ax, succ_rate, ss_cap, 'k'+style[count], u'nn = %d' % count)
+# 	# draw_throughput(ax, fail, ss, 'k'+style[count], u'nn = %d' % count)
+
+# 	# draw_delay(ax, d)
 
 # ax.legend(loc = 0)
 # ax.grid()
@@ -141,110 +200,51 @@ pprint(deliv)
 # plt.xticks(ticks)
 # # ax.set_xlim(0.005, 1)
 # # ax.set_ylim(0, 30)
-# # f.savefig('tp.pdf')
-# # f.savefig('tp.pgf')
-
-
-
-f = new_figure()
-ax = f.add_subplot(111)
-style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
-ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
-
-crashed = set([0.01, 0.4, 0.7])
-
-for count in [5,50]:
-	succ=[]
-	fail=[]
-	ss_cap = []
-	for s in ss:
-		if count == 100 and s in crashed:
-			print('skip', s)
-		else:
-			ss_cap.append(s)
-			# print(len(dls[('%d' % (count,),'10','%f'%(s,))]))
-			dls_s = dls[('%d' % (count,),'10','%f'%(s,))][0]
-			dls_f = dls[('%d' % (count,),'10','%f'%(s,))][1]
-			# d.append(dls_s[('%d' % (count,),'10','%f'%(s,))])
-			succ.append(len(dls_s))
-			fail.append(len(dls_f))
-	
-
-	succ = np.array(succ, dtype=np.float)
-	fail = np.array(fail, dtype=np.float)
-
-	# print(succ)
-	# print(fail)
-	total = succ + fail
-	fail_rate = np.divide(fail, total) * 100
-	succ_rate = np.divide(succ, total) * 100
-
-	# print(total)
-	# print(fail_rate)
-	# sys.exit()
-
-	draw_throughput(ax, succ_rate, ss_cap, 'k'+style[count], u'nn = %d' % count)
-	# draw_throughput(ax, fail, ss, 'k'+style[count], u'nn = %d' % count)
-
-	# draw_delay(ax, d)
-
-ax.legend(loc = 0)
-ax.grid()
-ax.set_xscale('log')
-ticks = []
-# ticks.extend(np.arange(0.005, 0.01, 0.001).tolist())
-ticks.extend(np.arange(0.01, 0.1, 0.01).tolist())
-ticks.extend(np.arange(0.1, 1, 0.1).tolist())
-ticks.extend([1])
-print(ticks)
-plt.xticks(ticks)
-# ax.set_xlim(0.005, 1)
-# ax.set_ylim(0, 30)
-f.savefig('succ_rate.pdf')
-f.savefig('succ_rate.pgf')
+# f.savefig('succ_rate.pdf')
+# f.savefig('succ_rate.pgf')
 
 
 
 
-f = new_figure()
-ax = f.add_subplot(111)
-style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
-# ss = sorted([0.005, 
-# 	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.075, 0.09, 
-# 	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
-ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
+# f = new_figure()
+# ax = f.add_subplot(111)
+# style = {5:'o-', 50:'>--', 100:'s-', 7:'*-'}
+# # ss = sorted([0.005, 
+# # 	0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.075, 0.09, 
+# # 	0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1])
+# ss = sorted([1, 0.75, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.01])
 
-crashed = set([0.01, 0.4, 0.7])
+# crashed = set([0.01, 0.4, 0.7])
 
-for count in [5,50]:
-	d =[]
-	ss_cap = []
-	for s in ss:
-		# d.append(tps[('%d' % (count,),'10','%f'%(s,))][0] / 1000)
+# for count in [5,50]:
+# 	d =[]
+# 	ss_cap = []
+# 	for s in ss:
+# 		# d.append(tps[('%d' % (count,),'10','%f'%(s,))][0] / 1000)
 
-		if count == 100 and s in crashed:
-			print('skip', s)
-		else:
-			d.append(deliv[('%d' % (count,),'10','%f'%(s,))][2] * 100)
-			ss_cap.append(s)
+# 		if count == 100 and s in crashed:
+# 			print('skip', s)
+# 		else:
+# 			d.append(deliv[('%d' % (count,),'10','%f'%(s,))][2] * 100)
+# 			ss_cap.append(s)
 
-	print(d)
-	draw_throughput(ax, d, ss_cap, 'k'+style[count], u'nn = %d' % count)
+# 	print(d)
+# 	draw_throughput(ax, d, ss_cap, 'k'+style[count], u'nn = %d' % count)
 
-ax.legend(loc = 0)
-ax.grid()
-ax.set_xscale('log')
-ticks = []
-# ticks.extend(np.arange(0.005, 0.01, 0.001).tolist())
-ticks.extend(np.arange(0.01, 0.1, 0.01).tolist())
-ticks.extend(np.arange(0.1, 1, 0.1).tolist())
-ticks.extend([1])
-print(ticks)
-plt.xticks(ticks)
-# ax.set_xlim(0.005, 1)
-ax.set_ylim(95, 105)
-f.savefig('deliv.pdf')
-f.savefig('deliv.pgf')
+# ax.legend(loc = 0)
+# ax.grid()
+# ax.set_xscale('log')
+# ticks = []
+# # ticks.extend(np.arange(0.005, 0.01, 0.001).tolist())
+# ticks.extend(np.arange(0.01, 0.1, 0.01).tolist())
+# ticks.extend(np.arange(0.1, 1, 0.1).tolist())
+# ticks.extend([1])
+# print(ticks)
+# plt.xticks(ticks)
+# # ax.set_xlim(0.005, 1)
+# ax.set_ylim(95, 105)
+# f.savefig('deliv.pdf')
+# f.savefig('deliv.pgf')
 
 
 
